@@ -1,0 +1,17 @@
+{
+  "name": "git-reverse-rebase",
+  "version": "0.0.0",
+  "main": "index.js",
+  "author": "Kipras Melnikovas <kipras@kipras.org> (http://kipras.org/)",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "tsc -b",
+	"bundle": "./bundle.js"
+  },
+  "devDependencies": {
+    "typescript": "5.5.4"
+  },
+  "dependencies": {
+    "fs-extra": "11.2.0"
+  }
+}
