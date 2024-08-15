@@ -1,4 +1,7 @@
+import fs from "fs-extra";
+
 import { Operation } from "./operation";
+import { cleanLines } from "./util";
 
 export type GitReverseRebaseOpts = {
 	/**
@@ -43,11 +46,15 @@ export function parseArgv(argv: string[]): GitReverseRebaseOpts {
 			case "--delete-file":
 			case "--delete-files": {
 				ensureHas(arg);
-				const value = eat()!;
+				const value = eat()!.trim();
+
+				const files: string[] = value === "-"
+					? cleanLines(fs.readFileSync(0).toString())
+					: value.split(",");
 
 				opts.operations.push({
 					kind: "delete_file",
-					files: value.split(","),
+					files,
 				});
 
 				break;
