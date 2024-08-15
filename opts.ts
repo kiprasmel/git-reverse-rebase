@@ -2,6 +2,7 @@ import fs from "fs-extra";
 
 import { Operation } from "./operation";
 import { cleanLines } from "./util";
+import { listDeadFilesSince } from "./dead-files";
 
 export type GitReverseRebaseOpts = {
 	/**
@@ -38,6 +39,8 @@ export function parseArgv(argv: string[]): GitReverseRebaseOpts {
 		listDeadFiles: false,
 	};
 
+	const deferUntilParsed: (() => void)[] = [];
+
 	while (has()) {
 		const arg = eat();
 
@@ -66,6 +69,26 @@ export function parseArgv(argv: string[]): GitReverseRebaseOpts {
 				break;
 			}
 
+			case "--ddf":
+			case "--delete-dead-files": {
+				opts.listDeadFiles = true; // implied
+
+				/**
+				 * we depend on the `opts.base` to be parsed,
+				 * but it might not be at this point yet.
+				 * thus, defer until parsing is done.
+				 */
+				deferUntilParsed.push(() => {
+					const files: string[] = listDeadFilesSince(opts.base);
+					opts.operations.push({
+						kind: "delete_file",
+						files,
+					})
+				});
+
+				break;
+			}
+
 			default: {
 				if (!opts.base && !!arg) {
 					opts.base = arg;
@@ -77,6 +100,14 @@ export function parseArgv(argv: string[]): GitReverseRebaseOpts {
 			}
 		}
 	}
+
+	validateOptions(opts);
+
+	for (const deferred of deferUntilParsed) {
+		deferred();
+	}
+
+	validateOptions(opts);
 
 	return opts;
 }
