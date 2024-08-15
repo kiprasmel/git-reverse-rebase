@@ -5,6 +5,7 @@
   "author": "Kipras Melnikovas <kipras@kipras.org> (http://kipras.org/)",
   "license": "UNLICENSED",
   "scripts": {
+	"dev": "INSTALL_DIR=\"$HOME/.local/bin\" yarn bundle",
     "build": "tsc -b",
 	"bundle": "./bundle.js"
   },
