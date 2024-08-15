@@ -13,7 +13,10 @@ export type GitReverseRebaseOpts = {
 	*/
 	continue: boolean;
 	abort: boolean;
+	listDeadFiles: boolean;
 };
+
+export type GitReverseRebaseOption = keyof GitReverseRebaseOpts;
 
 export function parseArgv(argv: string[]): GitReverseRebaseOpts {
 	// const peek = () => argv[0];
@@ -29,6 +32,7 @@ export function parseArgv(argv: string[]): GitReverseRebaseOpts {
 
 		continue: false,
 		abort: false,
+		listDeadFiles: false,
 	};
 
 	while (has()) {
@@ -46,6 +50,12 @@ export function parseArgv(argv: string[]): GitReverseRebaseOpts {
 					files: value.split(","),
 				});
 
+				break;
+			}
+
+			case "--ldf":
+			case "--list-dead-files": {
+				opts.listDeadFiles = true;
 				break;
 			}
 
@@ -68,5 +78,21 @@ export function validateOptions(opts: GitReverseRebaseOpts): asserts opts is Git
 	if (!opts.base) {
 		const msg = `option "base" is required.`;
 		throw new Error(msg);
+	}
+
+	const incompatibleOptionGroups: GitReverseRebaseOption[][] = [
+		["abort", "continue", "listDeadFiles"], //
+	];
+
+	for (const group of incompatibleOptionGroups) {
+		/**
+		 * TODO support not only flags.
+		 */
+		const enabled = group.filter(x => opts[x]);
+
+		if (enabled.length > 1) {
+			const msg = `multiple incompatible flags detected: "${enabled}".`;
+			throw new Error(msg);
+		}
 	}
 }

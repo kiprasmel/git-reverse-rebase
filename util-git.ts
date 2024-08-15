@@ -115,7 +115,7 @@ export function didCommitRenameFile(filepath: string, commit: string): DidCommit
 	};
 }
 
-const spaceTabManyRegex = /[\s\t]+/g;
+export const spaceTabManyRegex = /[\s\t]+/g;
 
 export function addGlobalChanges(pathspec: string = ".") {
 	cp.execSync(`git add ${pathspec}`, { cwd: getRepoRootPath() });
