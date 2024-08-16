@@ -48,6 +48,7 @@ export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
 	 */
 	const cmd: string = [
 		`git log --pretty=format:"%H" --name-status`,
+		opts.file ? "--follow" : "",
 		opts.sinceCommittish ? `${opts.sinceCommittish}..` : "",
 		opts.file ? `-- ${opts.file}` : "",
 	].join(" ");
