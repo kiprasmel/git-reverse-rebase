@@ -66,7 +66,7 @@ export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
 			/**
 			 * `file` is relative path from repo root
 			 */
-			const [modRaw, file, ...rest] = modLine.split(spaceTabManyRegex);
+			let [modRaw, file, ...rest] = modLine.split(spaceTabManyRegex);
 			const mod: Mod = modRaw[0] as Mod;
 
 			if (mod === MOD.copy) {
@@ -97,6 +97,14 @@ export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
 					: fileTo;
 
 				rename2LatestFileMap.set(fileFrom, latestFile);
+			}
+
+			/**
+			 * keep all modifications associated with the same file,
+			 * even accross renames.
+			 */
+			if (rename2LatestFileMap.has(file)) {
+				file = rename2LatestFileMap.get(file)!;
 			}
 
 			assert.deepStrictEqual(rest.length, 0, `unparsed content of modification line detected. modLine = ${modLine}`);
