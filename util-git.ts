@@ -48,12 +48,12 @@ export function listCommitsSince(sinceCommittish: string): string[] {
 }
 
 export function listCommitsOfFileSince(file: string, sinceCommittish: string): string[] {
-	const out = cp.execSync(`git log --oneline --pretty="format:%H" --follow ${sinceCommittish}.. -- ${file}`).toString();
+	const out = cp.execSync(`git log --oneline --pretty="format:%H" --follow --diff-filter=c ${sinceCommittish}.. -- ${file}`).toString();
 	return cleanLines(out);
 }
 
 export function listCommitsOfFile(file: string): string[] {
-	const out = cp.execSync(`git log --oneline --pretty="format:%H" --follow -- ${file}`).toString();
+	const out = cp.execSync(`git log --oneline --pretty="format:%H" --follow --diff-filter=c -- ${file}`).toString();
 	return cleanLines(out);
 }
 
