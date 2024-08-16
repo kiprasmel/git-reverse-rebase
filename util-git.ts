@@ -24,7 +24,7 @@ export function listRepoRelativeFilepaths(cwd: string = getRepoRootPath()): stri
 		.filter(x => !!x);
 }
 
-export function resolveRepoRelFilepath(pathSuffix: string, repoRelFilepaths: string[] = listRepoRelativeFilepaths()): string {
+export function resolveRepoRelFilepath(pathSuffix: string, repoRelFilepaths: string[], sinceCommittish: string): string {
 	const matchingSuffixes: string[] = repoRelFilepaths.filter(x => x.endsWith(pathSuffix));
 
 	if (matchingSuffixes.length === 1) {
@@ -35,6 +35,16 @@ export function resolveRepoRelFilepath(pathSuffix: string, repoRelFilepaths: str
 		 */
 		const msg = `matched > 1 files for given suffix "${pathSuffix}". provide longer suffix.`;
 		throw new Error(msg);
+	}
+
+	/**
+	 * none found in current state of repo,
+	 * thus search in earlier commits.
+	 */
+	const commits: string[] = listCommitsOfFile(pathSuffix, sinceCommittish);
+
+	if (commits.length) {
+		return pathSuffix;
 	}
 
 	throw new Error(`did not find file in repo for provided suffix "${pathSuffix}".`);
