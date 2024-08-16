@@ -57,11 +57,11 @@ export function listCommitsSince(sinceCommittish: string): string[] {
 }
 
 export function listCommitsOfFile(file: string, sinceCommittish?: string): string[] {
-	return getFileModHistories({ file, sinceCommittish }).listCommitsOfFile();
+	return getFileModHistories({ sinceCommittish }).listCommitsOfFile(file);
 }
 
 export function listModificationsOfFile(file: string, sinceCommittish?: string): ModCommitPair[] {
-	return getFileModHistories({ file, sinceCommittish }).listModificationsOfFile();
+	return getFileModHistories({ sinceCommittish }).listModificationsOfFile(file);
 }
 
 /**

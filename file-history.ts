@@ -32,7 +32,6 @@ export type FileModificationHistory = [string, ModCommitPair[]];
 
 export type GetFileModHistoriesOpts = {
 	sinceCommittish?: string;
-	file?: string;
 }
 
 export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
@@ -49,7 +48,7 @@ export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
 	const cmd: string = [
 		`git log --pretty=format:"%H" --name-status`,
 		opts.sinceCommittish ? `${opts.sinceCommittish}..` : "",
-		opts.file ? `-- ${opts.file}` : "",
+		/** specifying a single file here will provide incorrect results, especially for renames, so don't. */
 	].join(" ");
 
 	const out = cp.execSync(cmd).toString();
@@ -114,7 +113,7 @@ export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
 		}
 	}
 
-	function listModificationsOfFile(file: string = opts.file || ""): ModCommitPair[] {
+	function listModificationsOfFile(file: string): ModCommitPair[] {
 		if (!file2modsMap.has(file)) {
 			const msg = `file not found in file2modsMap (file "${file}").`;
 			throw new Error(msg);
@@ -124,7 +123,7 @@ export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
 		return modPairs;
 	}
 
-	function listCommitsOfFile(file: string = opts.file || "", modPairs: ModCommitPair[] = listModificationsOfFile(file)): string[] {
+	function listCommitsOfFile(file: string, modPairs: ModCommitPair[] = listModificationsOfFile(file)): string[] {
 		const commitsOfFile: string[] = modPairs.map(x => x[1]);
 		return commitsOfFile;
 	}
