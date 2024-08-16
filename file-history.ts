@@ -2,7 +2,7 @@ import cp from "child_process";
 import assert from "assert";
 
 import { spaceTabManyRegex } from "./util-git";
-import { uniq } from "./util";
+import { cleanLines, uniq } from "./util";
 
 /**
  * man git-log
@@ -60,7 +60,7 @@ export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
 	const rename2LatestFileMap: Map<string, string> = new Map();
 
 	for (const part of parts) {
-		const lines = part.split("\n");
+		const lines: string[] = cleanLines(part);
 		const [commit, ...modsLines] = lines;
 
 		for (const modLine of modsLines) {
@@ -72,19 +72,15 @@ export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
 
 			if (mod === MOD.copy) {
 				/**
-				 * if we detect a copy, we'll be given history
-				 * of a completely unrelated file we copied from.
+				 * track the destination file, not the source ("copied from") file.
+				 * this is to make the operation act more like "add",
+				 * and to avoid mixing file histories. see below.
 				 *
-				 * this is especially a problem if a file was added as empty,
-				 * and there existed another empty file anywhere in the repo,
-				 * because now their histories would be mixed, even though
-				 * completely unrelated.
-				 *
-				 * `--diff-filter=c` to disable copies does NOT help,
-				 * because it only affects the "printing diffs" stage,
-				 * which comes *after* the "find relevant commits of a file" stage.
+				 * ideally we'd have a flag to disable "copy" modifications,
+				 * so that they'd end up as regular "add" instead,
+				 * but git does not have such feature.
 				 */
-				break;
+				file = rest.shift()!;
 			}
 
 			if (mod === MOD.rename) {
@@ -112,6 +108,23 @@ export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
 
 			if (!file2modsMap.has(file)) file2modsMap.set(file, []);
 			file2modsMap.get(file)!.push([mod as Mod, commit]);
+
+			if (mod === MOD.copy) {
+				/**
+				 * if we detect a copy, we'll be given history
+				 * of a completely unrelated file we copied from.
+				 *
+				 * this is especially a problem if a file was added as empty,
+				 * and there existed another empty file anywhere in the repo,
+				 * because now their histories would be mixed, even though
+				 * completely unrelated.
+				 *
+				 * `--diff-filter=c` to disable copies does NOT help,
+				 * because it only affects the "printing diffs" stage,
+				 * which comes *after* the "find relevant commits of a file" stage.
+				 */
+				break;
+			}
 		}
 	}
 
