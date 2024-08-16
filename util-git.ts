@@ -3,6 +3,7 @@ import cp from "child_process";
 import assert from "assert";
 
 import { cleanLines } from "./util";
+import { ModCommitPair, getFileModHistories } from "./file-history";
 
 export function getRepoRootPath(): string {
 	return cp.execSync(`git rev-parse --show-toplevel`).toString().trim();
@@ -39,22 +40,16 @@ export function resolveRepoRelFilepath(pathSuffix: string, repoRelFilepaths: str
 	throw new Error(`did not find file in repo for provided suffix "${pathSuffix}".`);
 }
 
-/** 
- * man git-log, PRETTY FORMATS
- */
 export function listCommitsSince(sinceCommittish: string): string[] {
-	const out = cp.execSync(`git log --oneline --pretty="format:%H" ${sinceCommittish}..`).toString();
-	return cleanLines(out);
+	return getFileModHistories({ sinceCommittish }).listCommits();
 }
 
-export function listCommitsOfFileSince(file: string, sinceCommittish: string): string[] {
-	const out = cp.execSync(`git log --oneline --pretty="format:%H" --follow --diff-filter=c ${sinceCommittish}.. -- ${file}`).toString();
-	return cleanLines(out);
+export function listCommitsOfFile(file: string, sinceCommittish?: string): string[] {
+	return getFileModHistories({ file, sinceCommittish }).listCommitsOfFile();
 }
 
-export function listCommitsOfFile(file: string): string[] {
-	const out = cp.execSync(`git log --oneline --pretty="format:%H" --follow --diff-filter=c -- ${file}`).toString();
-	return cleanLines(out);
+export function listModificationsOfFile(file: string, sinceCommittish?: string): ModCommitPair[] {
+	return getFileModHistories({ file, sinceCommittish }).listModificationsOfFile();
 }
 
 /**
@@ -64,7 +59,7 @@ export function listCommitsOfFile(file: string): string[] {
 export function allCommitsOfFileAreWithinSince(
 	filepath: string, //
 	sinceCommittish: string,
-	commitsOfFileSince: string[] = listCommitsOfFileSince(filepath, sinceCommittish),
+	commitsOfFileSince: string[] = listCommitsOfFile(filepath, sinceCommittish),
 	commitsOfFile: string[] = listCommitsOfFile(filepath),
 ): boolean {
 	if (commitsOfFile.length !== commitsOfFileSince.length) return false;
