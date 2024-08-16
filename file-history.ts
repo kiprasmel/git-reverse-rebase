@@ -70,24 +70,7 @@ export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
 			let [modRaw, file, ...rest] = modLine.split(spaceTabManyRegex);
 			const mod: Mod = modRaw[0] as Mod;
 
-			if (mod === MOD.copy) {
-				/**
-				 * if we detect a copy, we'll be given history
-				 * of a completely unrelated file we copied from.
-				 *
-				 * this is especially a problem if a file was added as empty,
-				 * and there existed another empty file anywhere in the repo,
-				 * because now their histories would be mixed, even though
-				 * completely unrelated.
-				 *
-				 * `--diff-filter=c` to disable copies does NOT help,
-				 * because it only affects the "printing diffs" stage,
-				 * which comes *after* the "find relevant commits of a file" stage.
-				 */
-				break;
-			}
-
-			if (mod === MOD.rename) {
+			if (mod === MOD.rename || mod === MOD.copy) {
 				const fileFrom = file;
 				const fileTo = rest.shift()!;
 
@@ -112,6 +95,23 @@ export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
 
 			if (!file2modsMap.has(file)) file2modsMap.set(file, []);
 			file2modsMap.get(file)!.push([mod as Mod, commit]);
+
+			if (mod === MOD.copy) {
+				/**
+				 * if we detect a copy, we'll be given history
+				 * of a completely unrelated file we copied from.
+				 *
+				 * this is especially a problem if a file was added as empty,
+				 * and there existed another empty file anywhere in the repo,
+				 * because now their histories would be mixed, even though
+				 * completely unrelated.
+				 *
+				 * `--diff-filter=c` to disable copies does NOT help,
+				 * because it only affects the "printing diffs" stage,
+				 * which comes *after* the "find relevant commits of a file" stage.
+				 */
+				break;
+			}
 		}
 	}
 
