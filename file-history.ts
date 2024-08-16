@@ -24,6 +24,7 @@ export const MOD = {
 	add: "A",
 	modify: "M",
 	rename: "R",
+	copy: "C",
 } as const satisfies Record<string, Mod>;
 
 export type FileModificationHistory = [string, ModCommitPair[]];
@@ -55,6 +56,23 @@ export function getFileModHistoriesSince(sinceCommittish: string) {
 			 */
 			const [modRaw, file, ...rest] = modLine.split(spaceTabManyRegex);
 			const mod: Mod = modRaw[0] as Mod;
+
+			if (mod === MOD.copy) {
+				/**
+				 * if we detect a copy, we'll be given history
+				 * of a completely unrelated file we copied from.
+				 *
+				 * this is especially a problem if a file was added as empty,
+				 * and there existed another empty file anywhere in the repo,
+				 * because now their histories would be mixed, even though
+				 * completely unrelated.
+				 *
+				 * `--diff-filter=c` to disable copies does NOT help,
+				 * because it only affects the "printing diffs" stage,
+				 * which comes *after* the "find relevant commits of a file" stage.
+				 */
+				break;
+			}
 
 			if (mod === MOD.rename) {
 				const fileFrom = file;
