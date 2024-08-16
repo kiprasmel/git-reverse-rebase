@@ -17,7 +17,7 @@ export function performOpDeleteFile(base: string, op: OperationDeleteFile) {
 	const repoRelFilepaths: string[] = git.listRepoRelativeFilepaths();
 
 	for (const fileSuffix of op.files) {
-		const filepath = git.resolveRepoRelFilepath(fileSuffix, repoRelFilepaths);
+		const filepath = git.resolveRepoRelFilepath(fileSuffix, repoRelFilepaths, base);
 		const modCommitPairs: ModCommitPair[] = git.listModificationsOfFile(filepath, base);
 		const commitsOfFileSinceBase: string[] = modCommitPairs.map((x) => x[1]);
 
