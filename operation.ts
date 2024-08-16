@@ -4,6 +4,7 @@ import assert from "assert";
 import * as git from "./util-git";
 import { reverseSequencer } from "./sequencer";
 import { log } from "./util";
+import { MOD, ModCommitPair } from "./file-history";
 
 export type Operation = OperationDeleteFile;
 
@@ -16,8 +17,9 @@ export function performOpDeleteFile(base: string, op: OperationDeleteFile) {
 	const repoRelFilepaths: string[] = git.listRepoRelativeFilepaths();
 
 	for (const fileSuffix of op.files) {
-		const filepath = git.resolveRepoRelFilepath(fileSuffix, repoRelFilepaths);
-		const commitsOfFileSinceBase: string[] = git.listCommitsOfFileSince(filepath, base);
+		const [filepath] = git.resolveRepoRelFilepath(fileSuffix, repoRelFilepaths, base);
+		const modCommitPairs: ModCommitPair[] = git.listModificationsOfFile(filepath, base);
+		const commitsOfFileSinceBase: string[] = modCommitPairs.map((x) => x[1]);
 
 		const allCommitsAreWithinBase: boolean = git.allCommitsOfFileAreWithinSince(filepath, base, commitsOfFileSinceBase);
 
@@ -29,7 +31,7 @@ export function performOpDeleteFile(base: string, op: OperationDeleteFile) {
 			throw new Error(msg);
 		}
 
-		log({ filepath, commitsOfFileSinceBase });
+		log({ filepath, modCommitPairs });
 
 		let currentRelFilepath: string = filepath;
 
@@ -47,8 +49,9 @@ export function performOpDeleteFile(base: string, op: OperationDeleteFile) {
 				// git.ensureRepoStateClean();
 
 				const exists: boolean = fs.existsSync(currentRelFilepath);
+				const commitAlreadyDeletedTheFile: boolean = modCommitPairs.find(x => x[1] === commit)![0] === MOD.delete;
 
-				if (!exists) {
+				if (!exists && !commitAlreadyDeletedTheFile) {
 					const differsFromOrig: boolean = currentRelFilepath !== filepath;
 					const originalFileInfo = !differsFromOrig ? "" : `, originally "${filepath}"`
 
@@ -61,9 +64,11 @@ export function performOpDeleteFile(base: string, op: OperationDeleteFile) {
 
 				const rename = git.didCommitRenameFile(currentRelFilepath, commit);
 
-				fs.unlinkSync(currentRelFilepath);
-				git.addGlobalChanges(currentRelFilepath);
-				git.amendCommit();
+				if (!commitAlreadyDeletedTheFile) {
+					fs.unlinkSync(currentRelFilepath);
+					git.addGlobalChanges(currentRelFilepath);
+					git.amendCommit();
+				}
 
 				if (rename) {
 					/**
