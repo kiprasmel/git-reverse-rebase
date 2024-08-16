@@ -18,5 +18,6 @@ export function listDeadFilesSince(sinceCommittish: string): string[] {
 }
 
 export function isFileDead(mods: Mod[]): boolean {
-	return mods.includes(MOD.delete) && mods.includes(MOD.add);
+	return (mods[0] === MOD.delete && mods[mods.length - 1] === MOD.add)
+		&& mods.filter(x => x === MOD.add).length < 2 /** TODO handle partially-dead (if earlier add + delete pairs exist). */;
 }
