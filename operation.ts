@@ -4,7 +4,7 @@ import assert from "assert";
 import * as git from "./util-git";
 import { reverseSequencer } from "./sequencer";
 import { log } from "./util";
-import { MOD, ModCommitPair } from "./file-history";
+import { MOD, ModCommitPair, getFileModHistories } from "./file-history";
 
 export type Operation = OperationDeleteFile;
 
@@ -16,9 +16,11 @@ export type OperationDeleteFile = {
 export function performOpDeleteFile(base: string, op: OperationDeleteFile) {
 	const repoRelFilepaths: string[] = git.listRepoRelativeFilepaths();
 
+	const histories = getFileModHistories({ sinceCommittish: base });
+
 	for (const fileSuffix of op.files) {
 		const [filepath] = git.resolveRepoRelFilepath(fileSuffix, repoRelFilepaths, base);
-		const modCommitPairs: ModCommitPair[] = git.listModificationsOfFile(filepath, base);
+		const modCommitPairs: ModCommitPair[] = histories.listModificationsOfFile(filepath); // cannot do this optimization because commit SHAs get rewritten for each file. need to batch files together by commits, then will be able.
 		const commitsOfFileSinceBase: string[] = modCommitPairs.map((x) => x[1]);
 
 		const allCommitsAreWithinBase: boolean = git.allCommitsOfFileAreWithinSince(filepath, base, commitsOfFileSinceBase);
