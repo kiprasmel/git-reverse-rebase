@@ -13,3 +13,7 @@ export function log(obj: any): void {
 		console.dir(obj, { depth: null });
 	}
 }
+
+export function uniq<T>(xs: T[]): T[] {
+	return [...new Set(xs)];
+}

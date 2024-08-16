@@ -17,7 +17,7 @@ export function performOpDeleteFile(base: string, op: OperationDeleteFile) {
 
 	for (const fileSuffix of op.files) {
 		const filepath = git.resolveRepoRelFilepath(fileSuffix, repoRelFilepaths);
-		const commitsOfFileSinceBase: string[] = git.listCommitsOfFileSince(filepath, base);
+		const commitsOfFileSinceBase: string[] = git.listCommitsOfFile(filepath, base);
 
 		const allCommitsAreWithinBase: boolean = git.allCommitsOfFileAreWithinSince(filepath, base, commitsOfFileSinceBase);
 

@@ -1,8 +1,11 @@
-import { getFileModHistoriesSince, FileModificationHistory, Mod, MOD } from "./file-history";
+import { getFileModHistories, FileModificationHistory, Mod, MOD } from "./file-history";
+import { log } from "./util";
 
 export function listDeadFilesSince(sinceCommittish: string): string[] {
-	const historyMods = getFileModHistoriesSince(sinceCommittish);
+	const historyMods = getFileModHistories({ sinceCommittish });
 	const fileModHistories: FileModificationHistory[] = [...historyMods.file2modsMap];
+
+	log({ fileModHistories, renames: [...historyMods.rename2LatestFileMap] });
 
 	const deadFiles: string[] = [];
 
