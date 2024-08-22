@@ -9,6 +9,11 @@ export type GitReverseRebaseOpts = {
 	 * onto where the rebase should be performed.
 	 */
 	base: string;
+	
+	/**
+	 * root of the repository.
+	 */
+	workdir: string;
 
 	operations: Operation[];
 
@@ -22,16 +27,21 @@ export type GitReverseRebaseOpts = {
 
 export type GitReverseRebaseOption = keyof GitReverseRebaseOpts;
 
+export const DEFAULT_WORKDIR = ".";
+
 export function parseArgv(argv: string[]): GitReverseRebaseOpts {
 	// const peek = () => argv[0];
 	const eat = () => argv.shift();
 	const has = () => argv.length > 0;
-	const ensureHas = (arg: string) => {
-		if (!has()) throw new Error(`arg "${arg}" expects a value.`);
+	const ensureHas = (argname: string): true => {
+		if (!has()) throw new Error(`arg "${argname}" expects a value.`);
+		return true;
 	}
+	const eatOrThrow = (argname: string): string => ensureHas(argname) && eat()!.trim();
 
 	const opts: GitReverseRebaseOpts = {
 		base: "",
+		workdir: DEFAULT_WORKDIR,
 		operations: [],
 
 		continue: false,
@@ -45,11 +55,15 @@ export function parseArgv(argv: string[]): GitReverseRebaseOpts {
 		const arg = eat();
 
 		switch (arg) {
+			case "--workdir": {
+				opts.workdir = eatOrThrow(arg);
+				break;
+			}
+
 			case "--df":
 			case "--delete-file":
 			case "--delete-files": {
-				ensureHas(arg);
-				const value = eat()!.trim();
+				const value = eatOrThrow(arg);
 
 				const files: string[] = value === "-"
 					? cleanLines(fs.readFileSync(0).toString())
@@ -103,6 +117,10 @@ export function parseArgv(argv: string[]): GitReverseRebaseOpts {
 
 	validateOptions(opts);
 
+	if (opts.workdir !== DEFAULT_WORKDIR) {
+		process.chdir(opts.workdir);
+	}
+
 	for (const deferred of deferUntilParsed) {
 		deferred();
 	}
@@ -115,6 +133,11 @@ export function parseArgv(argv: string[]): GitReverseRebaseOpts {
 export function validateOptions(opts: GitReverseRebaseOpts): asserts opts is GitReverseRebaseOpts {
 	if (!opts.base) {
 		const msg = `option "base" is required.`;
+		throw new Error(msg);
+	}
+
+	if (!fs.existsSync(opts.workdir)) {
+		const msg = `provided workdir does not exist (got "${opts.workdir}").`;
 		throw new Error(msg);
 	}
 
