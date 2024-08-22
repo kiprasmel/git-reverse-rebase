@@ -46,12 +46,27 @@ export function reverseSequencer({
 				 * either keep or drop empty commits,
 				 * so that rebase won't be stopped, and `--continue` won't be interrupted.
 				 *
-				 * note that this only affects commits that become empty
+				 * note that `--empty=drop` only affects commits that become empty
 				 * in the current rebase, NOT commits that were already empty.
 				 * for the latter, there's `--no-keep-empty`, see `man git-rebase`.
 				 */
-				dropEmpty ? "--empty=drop" : "--empty=keep"
-			].join(" ");
+				dropEmpty ? "--empty=drop" : "--empty=keep",
+
+				/**
+				 * drop the already-empty commits too.
+				 * this is needed to simplify logic for our `performOpDeleteFile`,
+				 * specific `amendCommit`, where an empty commit can be
+				 * created by amending the commit.
+				 *
+				 * this may cause a problem in the future, if a user already has
+				 * some empty commits, and wants to keep them untouched,
+				 * while still removing the newly-made empty commits from our rebase.
+				 *
+				 * to fix this, we should properly handle the `dropEmpty` logic
+				 * in `performOpDeleteFile`, instead of allowing empty commits there.
+				 */
+				dropEmpty ? "--no-keep-empty" : "",
+			].filter(x => x).join(" ");
 
 			rebase.launchRebaseWithCustomGitRebaseTodoLines(rebaseCmds, baseWithCommit, extraRebaseArgs);
 
