@@ -2,12 +2,14 @@
 
 const fs = require("fs");
 const path = require("path");
-const cp = require("child_process");
+const _exec = require("child_process").execSync;
+
+const exec = (cmd, opts) => _exec(cmd, { stdio: "inherit", ...opts });
 
 const EXE = "git-reverse-rebase";
 
-cp.execSync("yarn build");
-cp.execSync(`npx esbuild dist/git-reverse-rebase.js --bundle --platform=node --outfile=${EXE}`);
+exec("yarn build");
+exec(`npx esbuild dist/git-reverse-rebase.js --bundle --platform=node --outfile=${EXE}`);
 
 const lines = fs.readFileSync(EXE).toString().split("\n");
 
