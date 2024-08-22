@@ -1,0 +1,25 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "debug CLI",
+			"program": "${workspaceFolder}/git-reverse-rebase.ts",
+			"preLaunchTask": "tsc: build - tsconfig.json",
+			"outFiles": ["${workspaceFolder}/dist/**/*.js"],
+			"sourceMaps": true,
+			"smartStep": true,
+			"console": "integratedTerminal",
+			"args": "${input:CLI_ARGS}",
+		}
+	],
+	"inputs": [
+		{
+			"id": "CLI_ARGS",
+			"type": "promptString",
+			"description": "CLI args",
+			"default": "origin/master --workdir $tt"
+		},
+	]
+}
