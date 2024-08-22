@@ -21,7 +21,7 @@ export function gitReverseRebase(opts: GitReverseRebaseOpts): void {
 
 	for (const op of opts.operations) {
 		if (op.kind === "delete_file") {
-			performOpDeleteFile(opts.base, op);
+			performOpDeleteFile(opts, op);
 		} else {
 			assertNever(op.kind);
 		}

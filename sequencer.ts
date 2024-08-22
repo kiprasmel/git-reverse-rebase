@@ -1,3 +1,4 @@
+import { GitReverseRebaseOpts } from "./opts";
 import * as git from "./util-git";
 import * as rebase from "./util-git-rebase";
 
@@ -11,7 +12,7 @@ export type ReverseSequencerCtx = {
 	base: string;
 	commits: string[];
 	actionOnCommit: ReverseSequencerAction;
-};
+} & Pick<GitReverseRebaseOpts, "dropEmpty">;
 
 /**
  * 
@@ -19,6 +20,7 @@ export type ReverseSequencerCtx = {
 export function reverseSequencer({
 	commits,
 	actionOnCommit,
+	dropEmpty,
  }: ReverseSequencerCtx) {
 	git.ensureRepoStateClean();
 
@@ -39,7 +41,19 @@ export function reverseSequencer({
 			 */
 			rebaseCmds.splice(1, 0, "break");
 
-			rebase.launchRebaseWithCustomGitRebaseTodoLines(rebaseCmds, baseWithCommit);
+			const extraRebaseArgs: string = [
+				/**
+				 * either keep or drop empty commits,
+				 * so that rebase won't be stopped, and `--continue` won't be interrupted.
+				 *
+				 * note that this only affects commits that become empty
+				 * in the current rebase, NOT commits that were already empty.
+				 * for the latter, there's `--no-keep-empty`, see `man git-rebase`.
+				 */
+				dropEmpty ? "--empty=drop" : "--empty=keep"
+			].join(" ");
+
+			rebase.launchRebaseWithCustomGitRebaseTodoLines(rebaseCmds, baseWithCommit, extraRebaseArgs);
 
 			/**
 			 * perform the action

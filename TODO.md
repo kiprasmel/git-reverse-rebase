@@ -7,11 +7,9 @@
 	- [ ] once becomes default, have separate flag `--[no-]batch-files`, to disable/re-enable for all
 - [ ] allow performing "automatable actions", e.g. `:%s/  /\t/g`
 - [ ] allow configuring what to do when a commit becomes empty due to our actions
-  - [ ] `--empty=keep|drop`
-    - [ ] "keep" meaning we'd commit with `--allow-empty` and prefix commit message with "EMPTY: "
-    - [ ] "drop" meaning we drop the commit
-    - [ ] or just `--drop-empty`, `--keep-empty`
 - [ ] `--file-history a,b,c,d` to list file histories
   - [ ] print file, then print list of commits, with extra info (subject, rename info if renamed, etc)
 - [ ] integrate range-diff (rebase-diff?)
+- [ ] progress-tracking in `.git/reverse-rebase/` dir
+  - [ ] allow `--abort`ing to orig if pause/failure
 - [ ] 

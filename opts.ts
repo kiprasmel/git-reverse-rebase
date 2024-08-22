@@ -23,6 +23,7 @@ export type GitReverseRebaseOpts = {
 	continue: boolean;
 	abort: boolean;
 	listDeadFiles: boolean;
+	dropEmpty: boolean;
 };
 
 export type GitReverseRebaseOption = keyof GitReverseRebaseOpts;
@@ -47,6 +48,7 @@ export function parseArgv(argv: string[]): GitReverseRebaseOpts {
 		continue: false,
 		abort: false,
 		listDeadFiles: false,
+		dropEmpty: false,
 	};
 
 	const deferUntilParsed: (() => void)[] = [];
@@ -100,6 +102,15 @@ export function parseArgv(argv: string[]): GitReverseRebaseOpts {
 					})
 				});
 
+				break;
+			}
+
+			case "--drop-empty": {
+				opts.dropEmpty = true;
+				break;
+			}
+			case "--keep-empty": {
+				opts.dropEmpty = false;
 				break;
 			}
 

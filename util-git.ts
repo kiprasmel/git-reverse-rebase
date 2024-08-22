@@ -126,8 +126,8 @@ export function addGlobalChanges(pathspec: string = ".") {
 	cp.execSync(`git add ${pathspec}`, { cwd: getRepoRootPath() });
 }
 
-export function amendCommit() {
-	cp.execSync(`git commit --amend --no-edit`);
+export function amendCommit(extraArgs: string = "") {
+	cp.execSync(`git commit --amend --no-edit ${extraArgs}`);
 }
 
 export function resetHard(committish: string) {

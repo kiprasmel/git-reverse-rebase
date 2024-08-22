@@ -5,6 +5,7 @@ import * as git from "./util-git";
 import { reverseSequencer } from "./sequencer";
 import { log } from "./util";
 import { MOD, ModCommitPair } from "./file-history";
+import { GitReverseRebaseOpts } from "./opts";
 
 export type Operation = OperationDeleteFile;
 
@@ -13,7 +14,9 @@ export type OperationDeleteFile = {
 	files: string[];
 };
 
-export function performOpDeleteFile(base: string, op: OperationDeleteFile) {
+export type PerformOpDeleteFileOpts = Pick<GitReverseRebaseOpts, "base" | "dropEmpty">;
+
+export function performOpDeleteFile({ base, dropEmpty }: PerformOpDeleteFileOpts, op: OperationDeleteFile) {
 	const repoRelFilepaths: string[] = git.listRepoRelativeFilepaths();
 
 	for (const fileSuffix of op.files) {
@@ -37,6 +40,7 @@ export function performOpDeleteFile(base: string, op: OperationDeleteFile) {
 
 		reverseSequencer({
 			base,
+			dropEmpty,
 			commits: commitsOfFileSinceBase,
 			actionOnCommit: ({ commit }) => {
 				/** 
@@ -68,7 +72,12 @@ export function performOpDeleteFile(base: string, op: OperationDeleteFile) {
 				if (!commitAlreadyDeletedTheFile) {
 					fs.unlinkSync(currentRelFilepath);
 					git.addGlobalChanges(currentRelFilepath);
-					git.amendCommit();
+
+					/**
+					 * allow empty commits to avoid interruptions.
+					 * the keeping/dropping logic is handled in the sequencer itself.
+					 */
+					git.amendCommit("--allow-empty");
 				}
 
 				if (rename) {
