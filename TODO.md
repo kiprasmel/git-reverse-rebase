@@ -12,4 +12,8 @@
 - [ ] integrate range-diff (rebase-diff?)
 - [ ] progress-tracking in `.git/reverse-rebase/` dir
   - [ ] allow `--abort`ing to orig if pause/failure
+- [ ] op `--rename-file`
+- [ ] misc: rename var dropEmpty to dropEmptyCommits
+- [ ] misc: rename file operation to op-delete-files (and var performOpDeleteFile to performOpDeleteFiles)
+- [ ] fix `--drop-empty` not removing all empty commits
 - [ ] 

@@ -24,6 +24,7 @@ export type GitReverseRebaseOpts = {
 	abort: boolean;
 	listDeadFiles: boolean;
 	dropEmpty: boolean;
+	batchFiles: boolean;
 };
 
 export type GitReverseRebaseOption = keyof GitReverseRebaseOpts;
@@ -49,6 +50,7 @@ export function parseArgv(argv: string[]): GitReverseRebaseOpts {
 		abort: false,
 		listDeadFiles: false,
 		dropEmpty: false,
+		batchFiles: true,
 	};
 
 	const deferUntilParsed: (() => void)[] = [];
@@ -111,6 +113,15 @@ export function parseArgv(argv: string[]): GitReverseRebaseOpts {
 			}
 			case "--keep-empty": {
 				opts.dropEmpty = false;
+				break;
+			}
+
+			case "--batch-files": {
+				opts.batchFiles = true;
+				break;
+			}
+			case "--no-batch-files": {
+				opts.batchFiles = false;
 				break;
 			}
 

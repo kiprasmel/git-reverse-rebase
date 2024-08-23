@@ -19,6 +19,7 @@ import { cleanLines, uniq } from "./util";
  */
 export type Mod = "A" | "C" | "D" | "M" | "R" | "T" | "U" | "X" | "B";
 export type ModCommitPair = [Mod, string];
+export type FileModPair = [string, Mod];
 
 export const MOD = {
 	delete: "D",
@@ -34,6 +35,8 @@ export type GetFileModHistoriesOpts = {
 	sinceCommittish?: string;
 	file?: string;
 }
+
+export type ModHistories = ReturnType<typeof getFileModHistories>;
 
 export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
 	/**
@@ -58,6 +61,8 @@ export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
 
 	const file2modsMap: Map<string, ModCommitPair[]> = new Map();
 	const rename2LatestFileMap: Map<string, string> = new Map();
+
+	const commit2fileModsMap: Map<string, FileModPair[]> = new Map();
 
 	for (const part of parts) {
 		const lines: string[] = cleanLines(part);
@@ -109,6 +114,9 @@ export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
 			if (!file2modsMap.has(file)) file2modsMap.set(file, []);
 			file2modsMap.get(file)!.push([mod as Mod, commit]);
 
+			if (!commit2fileModsMap.has(commit)) commit2fileModsMap.set(commit, []);
+			commit2fileModsMap.get(commit)!.push([file, mod as Mod]);
+
 			if (mod === MOD.copy) {
 				/**
 				 * if we detect a copy, we'll be given history
@@ -154,6 +162,7 @@ export function getFileModHistories(opts: GetFileModHistoriesOpts = {}) {
 	return {
 		file2modsMap,
 		rename2LatestFileMap,
+		commit2fileModsMap,
 
 		//
 		listModificationsOfFile,
